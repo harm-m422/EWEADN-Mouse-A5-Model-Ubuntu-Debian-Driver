@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+#
+# eweadn-a5-setup —— 首次初始化：创建 Wine 环境并安装官方驱动
+#
+# 只需要跑一次。之后用 eweadn-a5-gui 或桌面图标即可。
+#
+# 驱动来源（按优先级）：
+#   1. 环境变量 A5_DRIVER 指向的本地 .exe
+#   2. 已缓存的 ~/.local/share/eweadn-a5/a5drv.exe
+#   3. 从 EWEADN 官网下载
+#
+set -u
+
+SELF="$(readlink -f "${BASH_SOURCE[0]}")"
+SELF_DIR="$(dirname "$SELF")"
+DATA="${XDG_DATA_HOME:-$HOME/.local/share}/eweadn-a5"
+PREFIX="$DATA/wineprefix"
+CACHE="$DATA/a5drv.exe"
+EXE="$PREFIX/drive_c/eweadn-a5/OemDrv.exe"
+
+# 官方 A5 专属驱动（URL 里的中文是百分号编码的）
+DRIVER_URL="https://file.eweadn.cn/product-drive/A5%E7%B3%BB%E5%88%97%E9%BC%A0%E6%A0%87%E9%A9%B1%E5%8A%A8.exe"
+
+say() { printf '\033[1m==>\033[0m %s\n' "$*"; }
+die() { printf '\033[31m错误:\033[0m %s\n' "$*" >&2; exit 1; }
+
+command -v wine >/dev/null 2>&1 || die "没装 Wine。请先：sudo apt install wine"
+
+mkdir -p "$DATA"
+
+# --- 1. 准备驱动安装包 ---
+driver=""
+if [ -n "${A5_DRIVER:-}" ]; then
+    [ -f "$A5_DRIVER" ] || die "A5_DRIVER 指向的文件不存在：$A5_DRIVER"
+    driver="$A5_DRIVER"
+    say "使用指定的驱动：$driver"
+elif [ -f "$CACHE" ]; then
+    driver="$CACHE"
+    say "使用已缓存的驱动：$driver"
+else
+    say "从官网下载官方驱动（约 2 MB）..."
+    if command -v curl >/dev/null 2>&1; then
+        curl -fL --progress-bar "$DRIVER_URL" -o "$CACHE" || die "下载失败。可以手动下载后用 A5_DRIVER=/路径/to/驱动.exe 再跑一次"
+    elif command -v wget >/dev/null 2>&1; then
+        wget -O "$CACHE" "$DRIVER_URL" || die "下载失败"
+    else
+        die "没有 curl/wget。请手动下载官方驱动，然后用 A5_DRIVER=/路径 再跑一次"
+    fi
+    driver="$CACHE"
+fi
+
+# --- 2. 创建 Wine 环境 ---
+export WINEPREFIX="$PREFIX"
+export WINEDLLOVERRIDES="mscoree,mshtml="   # 不弹 Wine Mono/Gecko 安装提示
+export WINEDEBUG=-all
+
+if [ ! -d "$PREFIX" ]; then
+    say "创建 Wine 环境（第一次约 30~60 秒）..."
+    wineboot -u >/dev/null 2>&1 || die "wineboot 失败"
+fi
+
+# --- 3. 安装驱动 ---
+if [ -x "$EXE" ]; then
+    say "官方驱动已安装，跳过：$EXE"
+else
+    say "静默安装官方驱动..."
+    wine "$driver" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /DIR='C:\eweadn-a5' >/dev/null 2>&1
+    [ -x "$EXE" ] || die "安装后没找到 $EXE —— 安装可能失败了"
+fi
+
+say "完成。"
+echo
+echo "接下来："
+echo "  · 图形界面（推荐）：eweadn-a5-gui    或点桌面/菜单里的「EWEADN A5 鼠标设置」"
+echo "  · 命令行（不需要 Wine）：eweadn-a5 read --parse"
+echo "                            eweadn-a5 set --slot 1 --value 1000"
+echo
+echo "记得鼠标要用 Type-C 线插着。"

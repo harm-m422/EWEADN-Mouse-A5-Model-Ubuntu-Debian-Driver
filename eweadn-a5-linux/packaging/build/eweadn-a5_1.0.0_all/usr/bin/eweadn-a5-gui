@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+#
+# eweadn-a5-gui —— 启动官方驱动的图形界面（跑在 Wine 里）
+#
+# 这是「和 Windows 一样方便」的那个入口：桌面/菜单里的图标指向它。
+# 能调 DPI、回报率、按键重映射、宏、灯光。
+#
+# 前提：鼠标用 Type-C 线插着。配置通道只在线模式的接口 1.1 上，
+#       2.4G 接收器身份下官方驱动也读不到配置。
+#
+set -u
+
+SELF="$(readlink -f "${BASH_SOURCE[0]}")"
+SELF_DIR="$(dirname "$SELF")"
+DATA="${XDG_DATA_HOME:-$HOME/.local/share}/eweadn-a5"
+PREFIX="$DATA/wineprefix"
+EXE="$PREFIX/drive_c/eweadn-a5/OemDrv.exe"
+
+# 找一个能用的 zenity（没有就退回终端提示）
+notify() {
+    if command -v zenity >/dev/null 2>&1; then
+        zenity --info --title="EWEADN A5" --width=420 --text="$1" 2>/dev/null || true
+    else
+        echo "$1" >&2
+    fi
+}
+
+die() {
+    if command -v zenity >/dev/null 2>&1; then
+        zenity --error --title="EWEADN A5" --width=460 --text="$1" 2>/dev/null || true
+    fi
+    echo "eweadn-a5-gui: $1" >&2
+    exit 1
+}
+
+if ! command -v wine >/dev/null 2>&1; then
+    die "没装 Wine，官方驱动跑不起来。
+
+请先安装：
+    sudo apt install wine
+
+或者用纯 Linux 命令行工具（不需要 Wine）：
+    eweadn-a5 read --parse
+    eweadn-a5 set --slot 1 --value 1000
+
+提示：鼠标要用 Type-C 线插着。"
+fi
+
+# 首次运行：先做初始化
+if [ ! -x "$EXE" ]; then
+    if command -v zenity >/dev/null 2>&1; then
+        zenity --question --title="EWEADN A5" --width=460 \
+            --text="第一次运行需要初始化（创建 Wine 环境并安装官方驱动，约 1 分钟，需要联网）。\n\n现在开始？" 2>/dev/null \
+            || exit 0
+    fi
+    for c in "$SELF_DIR/eweadn-a5-setup" "/usr/bin/eweadn-a5-setup" "/usr/local/bin/eweadn-a5-setup"; do
+        [ -x "$c" ] && exec "$c"
+    done
+    die "找不到 eweadn-a5-setup"
+fi
+
+export WINEPREFIX="$PREFIX"
+export WINEDLLOVERRIDES="mscoree,mshtml="
+
+# 结束残留的 Wine 进程：winebus 的 HID 后端跑在常驻的 plugplay 服务里，
+# 旧进程可能还拿着旧的设备列表，导致界面里看不到鼠标。
+wineserver -k 2>/dev/null
+sleep 2
+
+exec wine "$EXE"

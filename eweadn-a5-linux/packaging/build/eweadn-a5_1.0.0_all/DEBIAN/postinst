@@ -1,0 +1,16 @@
+#!/bin/sh
+set -e
+if [ -x /usr/bin/update-desktop-database ]; then
+    update-desktop-database -q /usr/share/applications || true
+fi
+if command -v udevadm >/dev/null 2>&1; then
+    udevadm control --reload >/dev/null 2>&1 || true
+fi
+cat <<'MSG'
+
+eweadn-a5 已安装。
+  · 图形界面（功能最全）：eweadn-a5-setup  然后  eweadn-a5-gui
+  · 纯命令行（不需要 Wine）：eweadn-a5 read --parse
+注意：udev 权限规则要拔插一次鼠标才生效。
+MSG
+exit 0

@@ -1,0 +1,21 @@
+# 前行者 / EWEADN A5 系列鼠标：允许读写 hidraw
+# a5tool.py 和网页驱动 (hub.eweadn.cn) 都需要这个。
+#
+# 安装：
+#   sudo cp data/99-eweadn-a5.rules /etc/udev/rules.d/
+#   sudo udevadm control --reload && sudo udevadm trigger --subsystem-match=hidraw --action=add
+#   然后拔插一次鼠标 / Type-C 线
+#
+# 为什么不用 TAG+="uaccess"：实测在这台机器上没生效
+# （装完规则后 /dev/hidraw0-7 仍然 Permission denied），改用 MODE="0666"，
+# 不依赖 logind，最稳。
+
+# Sinowealth(258a) 一整个厂商都放开，涵盖：
+#   258a:0136  Type-C 有线模式，产品串 "EWEADN A5"（实测）
+#   258a:0138  2.4G 接收器，产品串 "SINO WEALTH Wireless Mouse"（实测）
+KERNEL=="hidraw*", ATTRS{idVendor}=="258a", MODE="0666"
+
+# 官方网页驱动设备库里登记的 A5 系列 ID（A5 / A5 Pro / A5 Max / A5 SE / A5 Ultra）
+KERNEL=="hidraw*", ATTRS{idVendor}=="a8a4", MODE="0666"
+KERNEL=="hidraw*", ATTRS{idVendor}=="a8a5", MODE="0666"
+KERNEL=="hidraw*", ATTRS{idVendor}=="372e", MODE="0666"

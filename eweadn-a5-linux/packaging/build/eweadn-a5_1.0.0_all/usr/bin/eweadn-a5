@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+#
+# eweadn-a5 —— 命令行工具包装器
+#
+# 直接把参数转给 a5tool.py。这个脚本同时适用于三种安装方式：
+#   1. 源码仓库里直接跑
+#   2. 用户级安装（~/.local/lib/eweadn-a5/）
+#   3. 系统级安装（/usr/lib/eweadn-a5/，来自 .deb）
+#
+set -euo pipefail
+
+SELF="$(readlink -f "${BASH_SOURCE[0]}")"
+SELF_DIR="$(dirname "$SELF")"
+
+LIB=""
+for d in \
+    "${EWEADN_A5_LIB:-}" \
+    "$SELF_DIR/../lib/eweadn-a5" \
+    "$SELF_DIR/../src" \
+    "/usr/lib/eweadn-a5" \
+    "/usr/local/lib/eweadn-a5"
+do
+    if [ -n "$d" ] && [ -f "$d/a5tool.py" ]; then
+        LIB="$d"
+        break
+    fi
+done
+
+if [ -z "$LIB" ]; then
+    echo "eweadn-a5: 找不到 a5tool.py" >&2
+    echo "  可以用环境变量 EWEADN_A5_LIB 指定它所在的目录" >&2
+    exit 1
+fi
+
+exec python3 "$LIB/a5tool.py" "$@"

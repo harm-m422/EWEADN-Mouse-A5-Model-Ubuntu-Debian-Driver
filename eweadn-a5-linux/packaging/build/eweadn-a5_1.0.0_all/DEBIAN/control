@@ -1,0 +1,18 @@
+Package: eweadn-a5
+Version: 1.0.0
+Section: utils
+Priority: optional
+Architecture: all
+Depends: python3 (>= 3.8)
+Recommends: wine, zenity
+Installed-Size: 332
+Maintainer: eweadn-a5-linux contributors
+Homepage: https://github.com/harm-m422/Pioneer-Gaming-Mouse-A5-Model-Ubuntu-Debian-Driver
+Description: Linux configuration tool for the EWEADN/Qianxingzhe A5 gaming mouse
+ Provides a native CLI (hidraw only, no Wine) for reading and writing the
+ mouse's onboard config, plus a launcher for the official Windows driver
+ under Wine which gives the full GUI (DPI, polling rate, buttons, macros,
+ lighting).
+ .
+ The mouse's HID protocol was reverse engineered and is documented in
+ /usr/share/doc/eweadn-a5/docs/.

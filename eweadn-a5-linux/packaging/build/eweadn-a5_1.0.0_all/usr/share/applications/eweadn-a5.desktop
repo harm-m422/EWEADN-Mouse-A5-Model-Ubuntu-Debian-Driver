@@ -1,0 +1,23 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=EWEADN A5 鼠标设置
+Name[en]=EWEADN A5 Mouse Settings
+Name[zh_CN]=EWEADN A5 鼠标设置
+GenericName=Mouse Configuration
+GenericName[en]=Mouse Configuration
+Comment=配置前行者 / EWEADN A5 鼠标：DPI、回报率、按键重映射、宏、灯光
+Comment[en]=Configure the EWEADN A5 mouse: DPI, polling rate, button remapping, macros, lighting
+Exec=eweadn-a5-gui
+TryExec=eweadn-a5-gui
+Icon=eweadn-a5
+Terminal=false
+StartupNotify=true
+Categories=Settings;HardwareSettings;
+Keywords=mouse;gaming;dpi;eweadn;a5;前行者;鼠标;
+Actions=ReadConfig;
+
+[Desktop Action ReadConfig]
+Name=读取当前配置（命令行）
+Name[en]=Read current config (CLI)
+Exec=eweadn-a5 read --parse
