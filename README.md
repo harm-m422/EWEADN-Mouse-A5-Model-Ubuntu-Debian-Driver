@@ -22,11 +22,11 @@
 
 这只鼠标的官方驱动只有 Windows 版。Linux 上：
 
-- ❌ `libratbag` / `piper` 不支持（虽然 libratbag 有 sinowealth 驱动，但这只鼠标的
+-  `libratbag` / `piper` 不支持（虽然 libratbag 有 sinowealth 驱动，但这只鼠标的
   report ID 和命令集跟它的不一致）
-- ❌ 官方网页驱动（WebHID）不支持 —— 它要求设备有 OUTPUT report，而这只鼠标的
+- 官方网页驱动（WebHID）不支持 —— 它要求设备有 OUTPUT report，而这只鼠标的
   HID 描述符里**一个都没有**
-- ✅ 本项目：把官方驱动的真实协议抓出来，做成原生 Linux 工具
+-  本项目：把官方驱动的真实协议抓出来，做成原生 Linux 工具
 
 ## 快速开始
 
@@ -72,7 +72,7 @@ eweadn-a5-gui          # 或者点菜单里的「EWEADN A5 鼠标设置」
 eweadn-a5 read --parse
 ```
 
-> ⚠️ **鼠标要用 Type-C 线插着。** 配置通道只在线模式的接口 1.1 上，
+> 特别注意！！！ **鼠标要用 Type-C 线插着。** 配置通道只在线模式的接口 1.1 上，
 > 2.4G 接收器身份下官方驱动也读不到配置。
 
 ## 用法
@@ -107,12 +107,12 @@ eweadn-a5 set --slot 1 --value 1000 --dry-run
 
 | 功能 | 原生 CLI | 官方驱动（Wine） |
 |---|---|---|
-| 读取设备信息 / 完整配置 | ✅ | ✅ |
-| DPI 档位（XY 独立） | ✅ | ✅ |
-| 回报率 | ⬜ 待补 | ✅ |
-| 灯光 | ⬜ 待补 | ✅ |
-| 按键重映射 | ⬜ 待补 | ✅ |
-| 宏 | ⬜ 待补 | ✅ |
+| 读取设备信息 / 完整配置 | Y | Y |
+| DPI 档位（XY 独立） | Y | Y |
+| 回报率 | N 待补 | Y |
+| 灯光 | N 待补 | Y |
+| 按键重映射 | N 待补 | Y |
+| 宏 | N 待补 | Y |
 
 CLI 目前只做了 DPI —— 但**协议已经全部摊开**（见 [`docs/protocol.md`](docs/protocol.md)），
 补其他项只需要用 `tools/capture-write.sh` 再抓一次官方驱动的报文、diff 出偏移量。
@@ -152,8 +152,8 @@ GET -> 09 58 44 00 01 00 90 01 <配置体 372 字节>
 
 | 模式 | USB ID | 产品串 | 配置通道 |
 |---|---|---|---|
-| Type-C 有线 | `258a:0136` | `EWEADN A5` | ✅ 接口 1.1 |
-| 2.4G 接收器 | `258a:0138` | `SINO WEALTH Wireless Mouse` | ❌ 不响应 |
+| Type-C 有线 | `258a:0136` | `EWEADN A5` | CAN 接口 1.1 |
+| 2.4G 接收器 | `258a:0138` | `SINO WEALTH Wireless Mouse` | NO 不响应 |
 
 设备型号标识（读设备信息命令返回的 6 字节）：
 
